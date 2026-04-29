@@ -1,0 +1,22 @@
+{
+  "name": "polite-crawler",
+  "version": "1.0.0",
+  "description": "批量URL抓取工具，支持并发限制、速率控制、失败重试和持久化存储",
+  "main": "src/index.js",
+  "scripts": {
+    "test": "jest"
+  },
+  "keywords": [
+    "crawler",
+    "scraper",
+    "batch-url"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "jest": "^29.7.0"
+  },
+  "dependencies": {
+    "axios": "^1.6.0"
+  }
+}

@@ -1,10 +1,30 @@
 class RateLimiter {
   constructor(requestsPerSecond) {
+    this._validateRate(requestsPerSecond);
+    
     this.requestsPerSecond = requestsPerSecond;
     this.interval = 1000 / requestsPerSecond;
     this.lastRequestTime = 0;
     this.queue = [];
     this.isProcessing = false;
+  }
+
+  _validateRate(requestsPerSecond) {
+    if (typeof requestsPerSecond !== 'number') {
+      throw new TypeError(`requestsPerSecond 必须是数字类型，收到的类型: ${typeof requestsPerSecond}`);
+    }
+    
+    if (isNaN(requestsPerSecond)) {
+      throw new RangeError('requestsPerSecond 不能是 NaN');
+    }
+    
+    if (!isFinite(requestsPerSecond)) {
+      throw new RangeError('requestsPerSecond 必须是有限数字');
+    }
+    
+    if (requestsPerSecond <= 0) {
+      throw new RangeError(`requestsPerSecond 必须大于 0，收到的值: ${requestsPerSecond}`);
+    }
   }
 
   async add(task) {
@@ -52,6 +72,8 @@ class RateLimiter {
   }
 
   setRate(requestsPerSecond) {
+    this._validateRate(requestsPerSecond);
+    
     this.requestsPerSecond = requestsPerSecond;
     this.interval = 1000 / requestsPerSecond;
   }

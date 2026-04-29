@@ -27,6 +27,158 @@ describe('RateLimiter', () => {
       limiter.setRate(10);
       expect(limiter.getRate()).toBe(10);
     });
+
+    test('should initialize with positive decimal rates', () => {
+      const limiter = new RateLimiter(0.5); // 1 request every 2 seconds
+      expect(limiter.getRate()).toBe(0.5);
+    });
+  });
+
+  describe('Parameter validation', () => {
+    describe('Constructor validation', () => {
+      test('should throw TypeError for non-number types', () => {
+        expect(() => new RateLimiter('5')).toThrow(TypeError);
+        expect(() => new RateLimiter('5')).toThrow('必须是数字类型');
+        
+        expect(() => new RateLimiter(null)).toThrow(TypeError);
+        expect(() => new RateLimiter(undefined)).toThrow(TypeError);
+        expect(() => new RateLimiter(true)).toThrow(TypeError);
+        expect(() => new RateLimiter({})).toThrow(TypeError);
+        expect(() => new RateLimiter([])).toThrow(TypeError);
+      });
+
+      test('should throw RangeError for NaN', () => {
+        expect(() => new RateLimiter(NaN)).toThrow(RangeError);
+        expect(() => new RateLimiter(NaN)).toThrow('不能是 NaN');
+      });
+
+      test('should throw RangeError for Infinity', () => {
+        expect(() => new RateLimiter(Infinity)).toThrow(RangeError);
+        expect(() => new RateLimiter(-Infinity)).toThrow(RangeError);
+        expect(() => new RateLimiter(Infinity)).toThrow('必须是有限数字');
+      });
+
+      test('should throw RangeError for zero', () => {
+        expect(() => new RateLimiter(0)).toThrow(RangeError);
+        expect(() => new RateLimiter(0)).toThrow('必须大于 0');
+      });
+
+      test('should throw RangeError for negative numbers', () => {
+        expect(() => new RateLimiter(-1)).toThrow(RangeError);
+        expect(() => new RateLimiter(-5)).toThrow(RangeError);
+        expect(() => new RateLimiter(-0.5)).toThrow(RangeError);
+        expect(() => new RateLimiter(-1)).toThrow('必须大于 0');
+      });
+
+      test('should not throw for valid positive numbers', () => {
+        expect(() => new RateLimiter(1)).not.toThrow();
+        expect(() => new RateLimiter(10)).not.toThrow();
+        expect(() => new RateLimiter(100)).not.toThrow();
+        expect(() => new RateLimiter(0.1)).not.toThrow();
+        expect(() => new RateLimiter(0.5)).not.toThrow();
+        expect(() => new RateLimiter(1.5)).not.toThrow();
+      });
+    });
+
+    describe('setRate validation', () => {
+      test('should throw TypeError for non-number types', () => {
+        const limiter = new RateLimiter(5);
+        
+        expect(() => limiter.setRate('10')).toThrow(TypeError);
+        expect(() => limiter.setRate(null)).toThrow(TypeError);
+        expect(() => limiter.setRate(undefined)).toThrow(TypeError);
+        expect(() => limiter.setRate(true)).toThrow(TypeError);
+        expect(() => limiter.setRate({})).toThrow(TypeError);
+        expect(() => limiter.setRate([])).toThrow(TypeError);
+      });
+
+      test('should throw RangeError for NaN', () => {
+        const limiter = new RateLimiter(5);
+        expect(() => limiter.setRate(NaN)).toThrow(RangeError);
+      });
+
+      test('should throw RangeError for Infinity', () => {
+        const limiter = new RateLimiter(5);
+        expect(() => limiter.setRate(Infinity)).toThrow(RangeError);
+        expect(() => limiter.setRate(-Infinity)).toThrow(RangeError);
+      });
+
+      test('should throw RangeError for zero', () => {
+        const limiter = new RateLimiter(5);
+        expect(() => limiter.setRate(0)).toThrow(RangeError);
+      });
+
+      test('should throw RangeError for negative numbers', () => {
+        const limiter = new RateLimiter(5);
+        expect(() => limiter.setRate(-1)).toThrow(RangeError);
+        expect(() => limiter.setRate(-5)).toThrow(RangeError);
+        expect(() => limiter.setRate(-0.5)).toThrow(RangeError);
+      });
+
+      test('should not throw for valid positive numbers', () => {
+        const limiter = new RateLimiter(5);
+        
+        expect(() => limiter.setRate(1)).not.toThrow();
+        expect(() => limiter.setRate(10)).not.toThrow();
+        expect(() => limiter.setRate(100)).not.toThrow();
+        expect(() => limiter.setRate(0.1)).not.toThrow();
+        expect(() => limiter.setRate(0.5)).not.toThrow();
+        expect(() => limiter.setRate(1.5)).not.toThrow();
+      });
+
+      test('should maintain previous rate when setRate throws error', () => {
+        const limiter = new RateLimiter(5);
+        const originalRate = limiter.getRate();
+        
+        try {
+          limiter.setRate(-1);
+        } catch (e) {
+          // Expected error
+        }
+        
+        expect(limiter.getRate()).toBe(originalRate);
+      });
+
+      test('should update rate successfully after validation', () => {
+        const limiter = new RateLimiter(5);
+        
+        limiter.setRate(10);
+        expect(limiter.getRate()).toBe(10);
+        
+        limiter.setRate(2.5);
+        expect(limiter.getRate()).toBe(2.5);
+      });
+    });
+
+    describe('Error messages', () => {
+      test('should include received type in TypeError message', () => {
+        try {
+          new RateLimiter('invalid');
+        } catch (error) {
+          expect(error.message).toContain('string');
+        }
+        
+        try {
+          new RateLimiter(null);
+        } catch (error) {
+          expect(error.message).toContain('object');
+        }
+      });
+
+      test('should include received value in RangeError for non-positive numbers', () => {
+        try {
+          new RateLimiter(0);
+        } catch (error) {
+          expect(error.message).toContain('0');
+        }
+        
+        try {
+          new RateLimiter(-5);
+        } catch (error) {
+          expect(error.message).toContain('-5');
+        }
+      });
+    });
   });
 
   describe('Basic functionality', () => {
